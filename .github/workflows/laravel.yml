@@ -12,20 +12,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
-      with:
-        php-version: '8.1'
-    - uses: actions/checkout@v3
-    - name: Copy .env
-      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
-    - name: Install Dependencies
-      run: composer install --no-scripts
-    - name: Generate key
-      run: php artisan key:generate
-    - name: Clear config
-      run: php artisan config:clear
-    - name: Restart Queue
-      run: php artisan queue:restart
-    - name: Directory Permissions
-      run: chmod -R 777 storage bootstrap/cache
+
+      - name: Checkout
+
+        uses: actions/checkout@v2
+
+      - name: Deployment
+
+        uses: appleboy/ssh-action@main
+
+        with:
+
+          host: ${{ secrets.SSH_HOST }}
+
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+          username: ${{ secrets.SSH_USERNAME }}
+
+          script: |
+
+            cd /var/www/test-ci-cd/test-ci-cd/
+
+            git checkout -f
+
+            git pull origin main
+
 
