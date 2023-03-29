@@ -23,11 +23,11 @@ jobs:
 
         with:
           host: ${{ secrets.SSH_HOST }}
-          ssh-key-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           username: ${{ secrets.SSH_USERNAME }}
           port: 22
           script_stop: true
-          
+
           script: |
 
             cd /var/www/test-ci-cd/test-ci-cd/
