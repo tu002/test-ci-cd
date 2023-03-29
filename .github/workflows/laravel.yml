@@ -38,4 +38,6 @@ jobs:
 
             composer install
 
+            php artisan config:clear
+
 
