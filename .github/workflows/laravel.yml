@@ -1,40 +1,27 @@
 name: Laravel
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
 jobs:
-  laravel-tests:
-
+  deploy-production:
+    name: Deploy Project to Production Server
     runs-on: ubuntu-latest
-
+    needs: [ build-js-production ]
+    if: github.ref == 'refs/heads/main'
     steps:
-
-      - name: Checkout
-
-        uses: actions/checkout@v2
-
-      - name: Deployment
-
-        uses: appleboy/ssh-action@main
-
+      - uses: actions/checkout@v3
+      - name: Fetch built assets from Artifacts
+        uses: actions/download-artifact@v1
         with:
-
-          host: ${{ secrets.SSH_HOST }}
-
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-          username: ${{ secrets.SSH_USERNAME }}
-
-          script: |
-
-            cd /var/www/test-ci-cd/test-ci-cd/
-
-            git checkout -f
-
-            git pull origin main
-
-
+          name: assets
+          path: public
+      - name: Setup PHP
+        uses: shivammathur/setup-php@master
+        with:
+          php-version: '8.1'
+          extension-csv: mbstring, bcmath
+      - name: Composer install
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Setup Deployer
+        uses: atymic/deployer-php-action@master
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}

@@ -1,19 +1,51 @@
 <?php
+
 namespace Deployer;
 
 require 'recipe/laravel.php';
+require 'contrib/npm.php';
+require 'contrib/rsync.php';
 
+///////////////////////////////////
 // Config
+///////////////////////////////////
 
-set('repository', 'https://github.com/tu002/test-ci-cd.git');
+set('repository', 'git@github.com:tu002/test-ci-cd.git'); // Git Repository
+set('ssh_multiplexing', true);
 
-add('shared_files', []);
-add('shared_dirs', []);
-add('writable_dirs', []);
+set('rsync_src', function () {
+    return __DIR__; // If your project isn't in the root, you'll need to change this.
+});
 
-// Hosts
+add('rsync', [
+    'exclude' => [
+        '.git',
+        '/vendor/',
+        '.github',
+        'deploy.php',
+    ],
+]);
 
 
-// Hooks
+host('prod')
+->setHostname('104.237.130.191')
+->set('remote_user', 'root')
+->set('branch', 'main')
+->set('deploy_path', '/var/www/test-ci-cd/test-ci-cd');
 
 after('deploy:failed', 'deploy:unlock');
+
+desc('Start of Deploy the application');
+
+task('deploy', [
+    'deploy:prepare',
+    'rsync',
+    'deploy:secrets',
+    'deploy:vendors',
+    'deploy:shared',
+    'artisan:view:cache',
+    'artisan:config:cache',
+    'deploy:publish',
+]);
+
+desc('End of Deploy the application');
